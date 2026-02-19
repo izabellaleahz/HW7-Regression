@@ -123,13 +123,14 @@ class LogisticRegressor(BaseRegressor):
         function is a transformation of the linear model into an "S-shaped" curve that can be used
         for binary classification.
 
-        Arguments: 
+        Arguments:
             X (np.ndarray): Matrix of feature values.
 
-        Returns: 
+        Returns:
             The predicted labels (y_pred) for given X.
         """
-        pass
+        z = X @ self.W
+        return 1 / (1 + np.exp(-z))
     
     def loss_function(self, y_true, y_pred) -> float:
         """
@@ -140,10 +141,12 @@ class LogisticRegressor(BaseRegressor):
             y_true (np.array): True labels.
             y_pred (np.array): Predicted labels.
 
-        Returns: 
+        Returns:
             The mean loss (a single number).
         """
-        pass
+        y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        loss = -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+        return float(loss)
         
     def calculate_gradient(self, y_true, X) -> np.ndarray:
         """
@@ -154,7 +157,10 @@ class LogisticRegressor(BaseRegressor):
             y_true (np.array): True labels.
             X (np.ndarray): Matrix of feature values.
 
-        Returns: 
+        Returns:
             Vector of gradients.
         """
-        pass
+        y_pred = self.make_prediction(X)
+        N = X.shape[0]
+        grad = (1 / N) * (X.T @ (y_pred - y_true))
+        return grad
